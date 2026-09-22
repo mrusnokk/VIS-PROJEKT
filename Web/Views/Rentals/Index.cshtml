@@ -1,0 +1,97 @@
+﻿@using Shared.Models
+@using Web.ViewModels
+@model List<Rental>
+@{
+    ViewData["Title"] = "Moje půjčení";
+    string sortBy = ViewBag.SortBy ?? "StartedAt";
+    string sortDir = ViewBag.SortDir ?? "DESC";
+    string nextDir = sortDir == "ASC" ? "DESC" : "ASC";
+}
+
+<h2>Moje půjčení</h2>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">Zatím nemáte žádná půjčení.</div>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Kolo</th>
+                <th>
+                    <a asp-action="Index"
+                           asp-route-sortBy="StartedAt"
+                           asp-route-sortDir="@(sortBy == "StartedAt" ? nextDir : "DESC")">
+                        Začátek @(sortBy == "StartedAt" ? (sortDir == "ASC" ? "▲" : "▼") : "")
+                    </a>
+                </th>
+                <th>
+                    <a asp-action="Index"
+                           asp-route-sortBy="EndedAt"
+                           asp-route-sortDir="@(sortBy == "EndedAt" ? nextDir : "DESC")">
+                        Konec @(sortBy == "EndedAt" ? (sortDir == "ASC" ? "▲" : "▼") : "")
+                    </a>
+                </th>
+                <th>
+                    <a asp-action="Index"
+                           asp-route-sortBy="DurationMinutes"
+                           asp-route-sortDir="@(sortBy == "DurationMinutes" ? nextDir : "DESC")">
+                        Doba (min) @(sortBy == "DurationMinutes" ? (sortDir == "ASC" ? "▲" : "▼") : "")
+                    </a>
+                </th>
+                <th>
+                    <a asp-action="Index"
+                           asp-route-sortBy="Price"
+                           asp-route-sortDir="@(sortBy == "Price" ? nextDir : "DESC")">
+                        Cena @(sortBy == "Price" ? (sortDir == "ASC" ? "▲" : "▼") : "")
+                    </a>
+                </th>
+                <th>
+                    <a asp-action="Index"
+                           asp-route-sortBy="Status"
+                           asp-route-sortDir="@(sortBy == "Status" ? nextDir : "ASC")">
+                        Stav @(sortBy == "Status" ? (sortDir == "ASC" ? "▲" : "▼") : "")
+                    </a>
+                </th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var rental in Model)
+            {
+                <tr>
+                    <td>@rental.BikeId</td>
+                    <td>@rental.StartedAt.ToString("dd.MM.yyyy HH:mm")</td>
+                    <td>@(rental.EndedAt.HasValue? rental.EndedAt.Value.ToString("dd.MM.yyyy HH:mm") : "-")</td>
+                    <td>@(rental.DurationMinutes.HasValue? Math.Round(rental.DurationMinutes.Value).ToString() : "-")</td>
+                    <td>@(rental.Price.HasValue? rental.Price.Value + " Kč" : "-")</td>
+                    <td>
+                        <span class="badge @(rental.Status == "active" ? "bg-warning" : "bg-secondary")">
+                            @(rental.Status == "active" ? "Aktivní" : "Ukončeno")
+                        </span>
+                    </td>
+                    <td>
+                        @if (rental.Status == "active")
+                        {
+                            <a asp-action="Return" asp-route-rentalId="@rental.Id"
+                               class="btn btn-sm btn-danger">Vrátit kolo</a>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<a asp-controller="Stations" asp-action="Index" class="btn btn-primary">Půjčit kolo</a>
